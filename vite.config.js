@@ -1,6 +1,10 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 
+// ← Remplacez par le nom exact de votre dépôt GitHub
+//   Ex : github.com/jordan/sef-mureaux  →  'sef-mureaux'
+const REPO_NAME = 'sef-stock'
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
@@ -9,7 +13,7 @@ export default defineConfig(({ mode }) => {
   let scriptPath   = ''
   if (env.VITE_APPS_SCRIPT_URL) {
     try {
-      const u    = new URL(env.VITE_APPS_SCRIPT_URL)
+      const u      = new URL(env.VITE_APPS_SCRIPT_URL)
       scriptOrigin = u.origin
       scriptPath   = u.pathname  // /macros/s/XXX/exec
     } catch (e) {}
@@ -17,7 +21,10 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
-    base: mode === 'production' ? '/sef-stock/' : '/',
+
+    // En production (GitHub Pages) → /sef-stock/
+    // En local (dev)               → /
+    base: mode === 'production' ? `/${REPO_NAME}/` : '/',
 
     server: {
       proxy: {
@@ -31,7 +38,6 @@ export default defineConfig(({ mode }) => {
             proxy.on('proxyRes', (proxyRes, req, res) => {
               const location = proxyRes.headers['location']
               if ((proxyRes.statusCode === 301 || proxyRes.statusCode === 302) && location) {
-                // Réécriture CORS pour la réponse redirigée
                 proxyRes.headers['access-control-allow-origin'] = '*'
               }
             })
