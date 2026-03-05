@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 
 // ← Remplacez par le nom exact de votre dépôt GitHub
 //   Ex : github.com/jordan/sef-mureaux  →  'sef-mureaux'
-const REPO_NAME = 'sef-stock'
+const REPO_NAME = 'sef-mureaux'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
