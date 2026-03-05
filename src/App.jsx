@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { pvEntree, recuSource, pvDistribution, carteBeneficiaire, datamartMensuel } from "./pdfGenerator.js";
+import { pvEntree, recuSource, pvDistribution, carteBeneficiaire, datamartMensuel, listeStock } from "./pdfGenerator.js";
 import {
   loadAll, addEntree, addDistribution,
   addProduit, addBeneficiaire, addDonateur,
@@ -183,44 +183,191 @@ const Spinner = () => (
    LOGIN
 ══════════════════════════════════════ */
 const LoginPage = ({onLogin}) => {
-  const [pseudo,setPseudo] = useState("");
-  const [mdp,setMdp]       = useState("");
-  const [show,setShow]     = useState(false);
-  const [err,setErr]       = useState("");
+  // ── Connexion ──
+  const [pseudo,setPseudo]   = useState("");
+  const [mdp,setMdp]         = useState("");
+  const [show,setShow]       = useState(false);
+  const [err,setErr]         = useState("");
+  // ── Mot de passe oublié ──
+  const [mode,setMode]       = useState("login");     // "login" | "forgot" | "reset" | "done"
+  const [fPseudo,setFPseudo] = useState("");
+  const [fEmail,setFEmail]   = useState("");
+  const [fErr,setFErr]       = useState("");
+  const [fUser,setFUser]     = useState(null);
+  const [newMdp,setNewMdp]   = useState("");
+  const [confMdp,setConfMdp] = useState("");
+  const [showNew,setShowNew] = useState(false);
+  const [saving,setSaving]   = useState(false);
 
   const doLogin = () => {
     const u = BENEVOLES_LOCAL.find(b => b.pseudo===pseudo && b.mdp===mdp && b.actif);
     if(u) onLogin(u);
-    else { setErr("Identifiant ou mot de passe incorrect."); }
+    else setErr("Identifiant ou mot de passe incorrect.");
   };
+
+  const doForgotCheck = () => {
+    setFErr("");
+    const u = BENEVOLES_LOCAL.find(b =>
+      b.pseudo.toLowerCase()===fPseudo.toLowerCase() &&
+      b.email.toLowerCase()===fEmail.toLowerCase() &&
+      b.actif
+    );
+    if(u) { setFUser(u); setMode("reset"); }
+    else setFErr("Aucun compte trouvé avec ce pseudonyme et cet email.");
+  };
+
+  const doReset = async () => {
+    if(!newMdp || newMdp!==confMdp) return;
+    setSaving(true);
+    try {
+      await updateBenevole({
+        "Matricule":  fUser.matricule,
+        "Nom":        fUser.nom,
+        "Prénom":     fUser.prenom,
+        "Email":      fUser.email,
+        "Téléphone":  fUser.tel||"",
+        "Pseudonyme": fUser.pseudo,
+        "Pôle":       fUser.pole,
+        "Statut":     fUser.statut,
+        "MotDePasse": newMdp,
+      });
+      setMode("done");
+    } catch(e){ setFErr("Erreur : "+e.message); }
+    setSaving(false);
+  };
+
+  const reset = () => {
+    setMode("login"); setFPseudo(""); setFEmail(""); setFErr("");
+    setFUser(null); setNewMdp(""); setConfMdp(""); setErr("");
+  };
+
+  // ── Styles partagés ──
+  const cardStyle = {background:"var(--card)",borderRadius:24,padding:"40px 36px",width:"min(400px,94vw)",boxShadow:"var(--shadow-lg)",animation:"pop .3s ease"};
+  const inputStyle = {width:"100%",padding:"10px 13px",borderRadius:9,border:"1.5px solid var(--border)",background:"var(--bg)",fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"var(--text)",boxSizing:"border-box"};
+  const labelStyle = {fontSize:12,fontWeight:600,color:"var(--text2)",display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:.4};
+  const linkStyle  = {background:"none",border:"none",color:"var(--green)",fontSize:12,fontWeight:600,cursor:"pointer",textDecoration:"underline",padding:0,fontFamily:"'DM Sans',sans-serif"};
+
+  const Logo = () => (
+    <div style={{textAlign:"center",marginBottom:28}}>
+      <div style={{width:60,height:60,borderRadius:16,background:"var(--green)",margin:"0 auto 14px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28}}>✝️</div>
+      <h1 style={{fontSize:20,color:"var(--green)"}}>Secours Évangélique de France</h1>
+      <p style={{color:"var(--text2)",fontSize:12,marginTop:3,fontStyle:"italic"}}>Antenne Des Mureaux</p>
+    </div>
+  );
 
   return (
     <div style={{minHeight:"100vh",background:"var(--green)",display:"flex",alignItems:"center",justifyContent:"center",padding:"20px 14px"}}>
-      <div style={{background:"var(--card)",borderRadius:24,padding:"40px 36px",width:"min(400px,94vw)",boxShadow:"var(--shadow-lg)",animation:"pop .3s ease"}}>
-        <div style={{textAlign:"center",marginBottom:30}}>
-          <div style={{width:60,height:60,borderRadius:16,background:"var(--green)",margin:"0 auto 14px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28}}>✝️</div>
-          <h1 style={{fontSize:20,color:"var(--green)"}}>Secours Évangélique</h1>
-          <p style={{color:"var(--text2)",fontSize:12,marginTop:3,fontStyle:"italic"}}>de France — Les Mureaux</p>
-        </div>
-        {err&&<div style={{background:"var(--red-light)",border:"1px solid #f5b8b2",borderRadius:9,padding:"9px 13px",marginBottom:14,fontSize:13,color:"var(--red)"}}>⚠️ {err}</div>}
-        <div style={{marginBottom:14}}>
-          <label style={{fontSize:12,fontWeight:600,color:"var(--text2)",display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:.4}}>Pseudonyme</label>
-          <input value={pseudo} onChange={e=>{setPseudo(e.target.value);setErr("");}} onKeyDown={e=>e.key==="Enter"&&doLogin()}
-            placeholder="Votre pseudo" style={{width:"100%",padding:"10px 13px",borderRadius:9,border:"1.5px solid var(--border)",background:"var(--bg)",fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"var(--text)"}}/>
-        </div>
-        <div style={{marginBottom:20}}>
-          <label style={{fontSize:12,fontWeight:600,color:"var(--text2)",display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:.4}}>Mot de passe</label>
-          <div style={{position:"relative"}}>
-            <input type={show?"text":"password"} value={mdp} onChange={e=>{setMdp(e.target.value);setErr("");}} onKeyDown={e=>e.key==="Enter"&&doLogin()}
-              placeholder="••••••••" style={{width:"100%",padding:"10px 40px 10px 13px",borderRadius:9,border:"1.5px solid var(--border)",background:"var(--bg)",fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"var(--text)"}}/>
-            <button onClick={()=>setShow(!show)} style={{position:"absolute",right:10,top:"50%",transform:"translateY(-50%)",border:"none",background:"none",cursor:"pointer",fontSize:16}}>{show?"🙈":"👁️"}</button>
+
+      {/* ─── CONNEXION ─── */}
+      {mode==="login"&&(
+        <div style={cardStyle}>
+          <Logo/>
+          {err&&<div style={{background:"var(--red-light)",border:"1px solid #f5b8b2",borderRadius:9,padding:"9px 13px",marginBottom:14,fontSize:13,color:"var(--red)"}}>⚠️ {err}</div>}
+          <div style={{marginBottom:14}}>
+            <label style={labelStyle}>Pseudonyme</label>
+            <input value={pseudo} onChange={e=>{setPseudo(e.target.value);setErr("");}} onKeyDown={e=>e.key==="Enter"&&doLogin()}
+              placeholder="Votre pseudo" style={inputStyle}/>
+          </div>
+          <div style={{marginBottom:8}}>
+            <label style={labelStyle}>Mot de passe</label>
+            <div style={{position:"relative"}}>
+              <input type={show?"text":"password"} value={mdp} onChange={e=>{setMdp(e.target.value);setErr("");}} onKeyDown={e=>e.key==="Enter"&&doLogin()}
+                placeholder="••••••••" style={{...inputStyle,paddingRight:42}}/>
+              <button onClick={()=>setShow(!show)} style={{position:"absolute",right:10,top:"50%",transform:"translateY(-50%)",border:"none",background:"none",cursor:"pointer",fontSize:16}}>{show?"🙈":"👁️"}</button>
+            </div>
+          </div>
+          <div style={{textAlign:"right",marginBottom:20}}>
+            <button style={linkStyle} onClick={()=>{setMode("forgot");setErr("");}}>🔑 Mot de passe oublié ?</button>
+          </div>
+          <Btn full onClick={doLogin} style={{fontSize:15,padding:"12px"}}>Se connecter →</Btn>
+          <div style={{marginTop:16,background:"var(--bg)",borderRadius:10,padding:"10px 13px",fontSize:12,color:"var(--text2)",display:"flex",gap:8}}>
+            <span>ℹ️</span><span>Utilisez votre pseudonyme et mot de passe fournis par votre coordinateur.</span>
           </div>
         </div>
-        <Btn full onClick={doLogin} style={{fontSize:15,padding:"12px"}}>Se connecter →</Btn>
-        <div style={{marginTop:18,background:"var(--bg)",borderRadius:10,padding:"11px 13px",fontSize:12,color:"var(--text2)",display:"flex",gap:8}}>
-          <span>ℹ️</span><span>Utilisez votre pseudonyme et mot de passe fournis par votre coordinateur.</span>
+      )}
+
+      {/* ─── MOT DE PASSE OUBLIÉ — étape 1 : vérification identité ─── */}
+      {mode==="forgot"&&(
+        <div style={cardStyle}>
+          <Logo/>
+          <div style={{marginBottom:20}}>
+            <h2 style={{fontSize:16,color:"var(--green)",marginBottom:4}}>🔑 Mot de passe oublié</h2>
+            <p style={{fontSize:12,color:"var(--text2)"}}>Entrez votre pseudonyme et votre adresse email pour réinitialiser votre mot de passe.</p>
+          </div>
+          {fErr&&<div style={{background:"var(--red-light)",border:"1px solid #f5b8b2",borderRadius:9,padding:"9px 13px",marginBottom:14,fontSize:13,color:"var(--red)"}}>⚠️ {fErr}</div>}
+          <div style={{marginBottom:14}}>
+            <label style={labelStyle}>Pseudonyme</label>
+            <input value={fPseudo} onChange={e=>{setFPseudo(e.target.value);setFErr("");}} onKeyDown={e=>e.key==="Enter"&&doForgotCheck()}
+              placeholder="Votre pseudo" style={inputStyle}/>
+          </div>
+          <div style={{marginBottom:20}}>
+            <label style={labelStyle}>Adresse email</label>
+            <input type="email" value={fEmail} onChange={e=>{setFEmail(e.target.value);setFErr("");}} onKeyDown={e=>e.key==="Enter"&&doForgotCheck()}
+              placeholder="email@exemple.fr" style={inputStyle}/>
+          </div>
+          <Btn full onClick={doForgotCheck} disabled={!fPseudo||!fEmail}>Vérifier mon identité →</Btn>
+          <div style={{textAlign:"center",marginTop:16}}>
+            <button style={linkStyle} onClick={reset}>← Retour à la connexion</button>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* ─── MOT DE PASSE OUBLIÉ — étape 2 : nouveau mot de passe ─── */}
+      {mode==="reset"&&fUser&&(
+        <div style={cardStyle}>
+          <Logo/>
+          <div style={{marginBottom:20}}>
+            <h2 style={{fontSize:16,color:"var(--green)",marginBottom:4}}>🔒 Nouveau mot de passe</h2>
+            <div style={{background:"var(--green-light)",borderRadius:9,padding:"9px 13px",fontSize:13,color:"var(--green2)",fontWeight:600}}>
+              Compte : {fUser.prenom} {fUser.nom} ({fUser.pseudo})
+            </div>
+          </div>
+          {fErr&&<div style={{background:"var(--red-light)",border:"1px solid #f5b8b2",borderRadius:9,padding:"9px 13px",marginBottom:14,fontSize:13,color:"var(--red)"}}>⚠️ {fErr}</div>}
+          <div style={{marginBottom:14}}>
+            <label style={labelStyle}>Nouveau mot de passe</label>
+            <div style={{position:"relative"}}>
+              <input type={showNew?"text":"password"} value={newMdp} onChange={e=>setNewMdp(e.target.value)}
+                placeholder="Minimum 6 caractères" style={{...inputStyle,paddingRight:42}}/>
+              <button onClick={()=>setShowNew(!showNew)} style={{position:"absolute",right:10,top:"50%",transform:"translateY(-50%)",border:"none",background:"none",cursor:"pointer",fontSize:16}}>{showNew?"🙈":"👁️"}</button>
+            </div>
+          </div>
+          <div style={{marginBottom:6}}>
+            <label style={labelStyle}>Confirmer le mot de passe</label>
+            <input type="password" value={confMdp} onChange={e=>setConfMdp(e.target.value)}
+              onKeyDown={e=>e.key==="Enter"&&doReset()} placeholder="Répéter le mot de passe" style={inputStyle}/>
+          </div>
+          {newMdp&&confMdp&&newMdp!==confMdp&&(
+            <p style={{fontSize:11,color:"var(--red)",marginBottom:8}}>⚠️ Les mots de passe ne correspondent pas.</p>
+          )}
+          {newMdp.length>0&&newMdp.length<6&&(
+            <p style={{fontSize:11,color:"var(--amber)",marginBottom:8}}>⚠️ Minimum 6 caractères requis.</p>
+          )}
+          <div style={{marginTop:16}}>
+            <Btn full onClick={doReset} disabled={!newMdp||newMdp.length<6||newMdp!==confMdp||saving}>
+              {saving?<Spinner/>:"💾 Enregistrer le nouveau mot de passe"}
+            </Btn>
+          </div>
+          <div style={{textAlign:"center",marginTop:14}}>
+            <button style={linkStyle} onClick={()=>setMode("forgot")}>← Retour</button>
+          </div>
+        </div>
+      )}
+
+      {/* ─── SUCCÈS ─── */}
+      {mode==="done"&&(
+        <div style={cardStyle}>
+          <div style={{textAlign:"center",padding:"20px 0"}}>
+            <div style={{fontSize:64,marginBottom:12}}>✅</div>
+            <h2 style={{fontSize:20,color:"var(--green)",marginBottom:8}}>Mot de passe modifié !</h2>
+            <p style={{fontSize:13,color:"var(--text2)",marginBottom:6}}>Votre mot de passe a été mis à jour dans le classeur Google Sheets.</p>
+            <div style={{background:"var(--amber-light)",borderRadius:10,padding:"10px 14px",fontSize:12,color:"var(--amber)",marginBottom:20,textAlign:"left"}}>
+              ⚠️ <b>Important :</b> Pour que la connexion fonctionne immédiatement, un coordinateur doit aussi mettre à jour <b>BENEVOLES_LOCAL</b> dans App.jsx avec le nouveau mot de passe.
+            </div>
+            <Btn full onClick={reset}>← Retour à la connexion</Btn>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
@@ -251,8 +398,8 @@ const Sidebar = ({page,setPage,user,onLogout,alertCount,open,onClose}) => {
         <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:12}}>
           <div style={{width:36,height:36,borderRadius:10,background:"rgba(255,255,255,.15)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>✝️</div>
           <div>
-            <div style={{fontFamily:"'Lora',serif",color:"#fff",fontWeight:700,fontSize:12,lineHeight:1.3}}>Secours Évangélique</div>
-            <div style={{color:"rgba(255,255,255,.5)",fontSize:10}}>de France — Les Mureaux</div>
+            <div style={{fontFamily:"'Lora',serif",color:"#fff",fontWeight:700,fontSize:12,lineHeight:1.3}}>Secours Évangélique de France</div>
+            <div style={{color:"rgba(255,255,255,.5)",fontSize:10}}>Antenne Des Mureaux</div>
           </div>
         </div>
         <div style={{background:"rgba(255,255,255,.1)",borderRadius:10,padding:"9px 11px",display:"flex",gap:9,alignItems:"center"}}>
@@ -402,6 +549,17 @@ const Dashboard = ({produits,categories,beneficiaires,entrees,sorties,mouvements
   );
 };
 
+
+/* ── Utilitaire export CSV ── */
+const dlCSV = (rows, filename) => {
+  const header = Object.keys(rows[0]);
+  const lines  = [header, ...rows.map(r => header.map(k => String(r[k]??'').replace(/,/g,'') ))];
+  const blob   = new Blob([lines.map(l=>l.join(',')).join('\n')], {type:'text/csv;charset=utf-8;'});
+  const url    = URL.createObjectURL(blob);
+  const a      = document.createElement('a'); a.href=url; a.download=filename; a.click();
+  URL.revokeObjectURL(url);
+};
+
 /* ══════════════════════════════════════
    PRODUITS
 ══════════════════════════════════════ */
@@ -418,13 +576,15 @@ const ProduitsPage = ({produits,setProduits,categories,user}) => {
   const [form,setForm]           = useState({label:"",cat:"",nature:"",seuil:5,actif:true});
   const [editForm,setEditForm]   = useState(null);
 
-  const filtered = produits.filter(p=>{
-    if(!p.actif) return false;
-    if(alerteOnly&&p.stock>p.seuil) return false;
-    if(filtreCat&&p.cat!==filtreCat) return false;
-    if(search&&!p.label.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  });
+  const filtered = produits
+    .filter(p=>{
+      if(!p.actif) return false;
+      if(alerteOnly&&p.stock>p.seuil) return false;
+      if(filtreCat&&p.cat!==filtreCat) return false;
+      if(search&&!p.label.toLowerCase().includes(search.toLowerCase())) return false;
+      return true;
+    })
+    .sort((a,b)=>a.label.localeCompare(b.label,'fr'));
 
   const catLabel = ref => categories.find(c=>c.ref===ref||c.label===ref)?.label||ref;
   const showT = (msg,ok=true) => { setToastOk(ok); setToast(msg); setTimeout(()=>setToast(null),3500); };
@@ -455,12 +615,40 @@ const ProduitsPage = ({produits,setProduits,categories,user}) => {
 
   return (
     <div className="page">
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:18,flexWrap:"wrap",gap:10}}>
         <div>
           <h1 style={{fontSize:26,color:"var(--green)"}}>Produits & Stock</h1>
-          <p style={{color:"var(--text2)",fontSize:13}}>{filtered.length} produits · {produits.reduce((s,p)=>s+p.stock,0)} unités en stock</p>
+          <p style={{color:"var(--text2)",fontSize:13}}>{filtered.length} produits · <b style={{color:"var(--green)"}}>{produits.filter(p=>p.actif).reduce((s,p)=>s+p.stock,0)}</b> unités en stock</p>
         </div>
-        {isMembre(user)&&<Btn onClick={()=>setModal(true)}>+ Nouveau produit</Btn>}
+        <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
+          {/* Téléchargements */}
+          {/* ── Boutons téléchargement ── */}
+          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+            {/* PDF */}
+            <button onClick={()=>listeStock(produits,categories,"all")}
+              style={{border:"1.5px solid var(--green)",background:"var(--green-light)",borderRadius:8,padding:"6px 11px",cursor:"pointer",fontSize:11,color:"var(--green)",fontWeight:600,fontFamily:"'DM Sans',sans-serif",whiteSpace:"nowrap"}}>
+              📄 PDF complet
+            </button>
+            <button onClick={()=>listeStock(produits,categories,"stock")}
+              style={{border:"1.5px solid var(--green)",background:"var(--green-light)",borderRadius:8,padding:"6px 11px",cursor:"pointer",fontSize:11,color:"var(--green)",fontWeight:600,fontFamily:"'DM Sans',sans-serif",whiteSpace:"nowrap"}}>
+              📄 PDF en stock
+            </button>
+            <button onClick={()=>listeStock(produits,categories,"alertes")}
+              style={{border:"1.5px solid var(--amber)",background:"var(--amber-light)",borderRadius:8,padding:"6px 11px",cursor:"pointer",fontSize:11,color:"var(--amber)",fontWeight:600,fontFamily:"'DM Sans',sans-serif",whiteSpace:"nowrap"}}>
+              📄 ⚠️ PDF alertes
+            </button>
+            {/* CSV */}
+            <button onClick={()=>dlCSV(produits.filter(p=>p.actif).sort((a,b)=>a.label.localeCompare(b.label,'fr')).map(p=>({Référence:p.ref,Libellé:p.label,Catégorie:catLabel(p.cat),Stock:p.stock,Seuil:p.seuil})),'produits_stock.csv')}
+              style={{border:"1.5px solid var(--border)",background:"var(--card)",borderRadius:8,padding:"6px 11px",cursor:"pointer",fontSize:11,color:"var(--text2)",fontWeight:600,fontFamily:"'DM Sans',sans-serif",whiteSpace:"nowrap"}}>
+              ⬇️ CSV complet
+            </button>
+            <button onClick={()=>dlCSV(produits.filter(p=>p.actif&&p.stock<=p.seuil).sort((a,b)=>a.label.localeCompare(b.label,'fr')).map(p=>({Référence:p.ref,Libellé:p.label,Catégorie:catLabel(p.cat),Stock:p.stock,Seuil:p.seuil})),'produits_alertes.csv')}
+              style={{border:"1.5px solid var(--border)",background:"var(--card)",borderRadius:8,padding:"6px 11px",cursor:"pointer",fontSize:11,color:"var(--text2)",fontWeight:600,fontFamily:"'DM Sans',sans-serif",whiteSpace:"nowrap"}}>
+              ⬇️ CSV alertes
+            </button>
+          </div>
+          {isMembre(user)&&<Btn onClick={()=>setModal(true)}>+ Nouveau produit</Btn>}
+        </div>
       </div>
 
       {toast&&<div style={{background:toastOk?"var(--green-light)":"var(--red-light)",border:`1px solid ${toastOk?"#b8dfc8":"#f5b8b2"}`,borderRadius:10,padding:"11px 16px",marginBottom:16,fontSize:13,fontWeight:600,color:toastOk?"var(--green2)":"var(--red)",display:"flex",gap:8}}>{toastOk?"✅":"❌"} {toast}</div>}
@@ -759,7 +947,15 @@ const EntreesPage = ({produits,setProduits,entrees,setEntrees,mouvements,setMouv
         Commentaires: commentaires,
         Benevole:     `${user.prenom} ${user.nom}`,
       }, mvts);
-      setProduits(prev=>prev.map(p=>items[p.ref]?{...p,stock:p.stock+(+items[p.ref].qte||0)}:p));
+      // Mise à jour optimiste locale
+      const newProds = [];
+      setProduits(prev=>prev.map(p=>{
+        if(!items[p.ref]) return p;
+        const newStock = p.stock+(+items[p.ref].qte||0);
+        newProds.push({ref:p.ref, stock:newStock, label:p.label, cat:p.cat, nature:p.nature||"", seuil:p.seuil});
+        return {...p,stock:newStock};
+      }));
+      // ✅ Le stock est recalculé côté serveur par syncAllStocks() après addEntree
       const newMvts = Object.entries(items).map(([ref,v])=>({
         id,date:hora.slice(0,10),type,produit:produits.find(p=>p.ref===ref)?.label||ref,
         qte:+v.qte,benevole:`${user.prenom} ${user.nom}`,commentaire:commentaires,dlc:v.dlc
@@ -790,7 +986,7 @@ const EntreesPage = ({produits,setProduits,entrees,setEntrees,mouvements,setMouv
     setSaving(false);
   };
 
-  const prods = produits.filter(p=>p.actif&&(!search||p.label.toLowerCase().includes(search.toLowerCase())));
+  const prods = produits.filter(p=>p.actif&&(!search||p.label.toLowerCase().includes(search.toLowerCase()))).sort((a,b)=>a.label.localeCompare(b.label,'fr'));
 
   // Références pour PDF (stockées au moment de confirm)
   const [lastEntree,setLastEntree] = useState(null);
@@ -999,7 +1195,7 @@ const EntreesPage = ({produits,setProduits,entrees,setEntrees,mouvements,setMouv
 /* ══════════════════════════════════════
    DISTRIBUTION
 ══════════════════════════════════════ */
-const DistributionPage = ({produits,setProduits,mouvements,setMouvements,sorties,setSorties,beneficiaires,user}) => {
+const DistributionPage = ({produits,setProduits,mouvements,setMouvements,sorties,setSorties,beneficiaires,user,categories}) => {
   const [step,setStep]     = useState(1);
   const [ben,setBen]       = useState(null);
   const [sel,setSel]       = useState({});
@@ -1007,6 +1203,8 @@ const DistributionPage = ({produits,setProduits,mouvements,setMouvements,sorties
   const [saving,setSaving] = useState(false);
   const [done,setDone]     = useState(false);
   const [search,setSearch] = useState("");
+  const [searchProd,setSearchProd]     = useState("");
+  const [filtreCatDist,setFiltreCatDist] = useState("");
 
   const nbProds   = Object.keys(sel).length;
   const totalItems= Object.values(sel).reduce((s,v)=>s+(+v||0),0);
@@ -1015,6 +1213,14 @@ const DistributionPage = ({produits,setProduits,mouvements,setMouvements,sorties
 
   const toggleProd = ref => setSel(prev=>{ const n={...prev}; if(n[ref]) delete n[ref]; else n[ref]=1; return n; });
   const setQte    = (ref,v) => setSel(prev=>({...prev,[ref]:Math.max(1,+v)}));
+  const catLabel  = ref => categories?.find(c=>c.ref===ref||c.label===ref)?.label||ref;
+
+  const prodsFiltered = produits
+    .filter(p => p.actif
+      && (!searchProd || p.label.toLowerCase().includes(searchProd.toLowerCase()))
+      && (!filtreCatDist || p.cat===filtreCatDist)
+    )
+    .sort((a,b) => a.label.localeCompare(b.label,'fr'));
 
   const confirm = async () => {
     setSaving(true);
@@ -1032,8 +1238,15 @@ const DistributionPage = ({produits,setProduits,mouvements,setMouvements,sorties
         Commentaires:   commentaires,
         Benevole:       `${user.prenom} ${user.nom}`,
       }, mvts);
-      // Mise à jour locale
-      setProduits(prev=>prev.map(p=>sel[p.ref]?{...p,stock:Math.max(0,p.stock-(+sel[p.ref]))}:p));
+      // Mise à jour optimiste locale + écriture classeur
+      const updatedProds = [];
+      setProduits(prev=>prev.map(p=>{
+        if(!sel[p.ref]) return p;
+        const newStock = Math.max(0, p.stock-(+sel[p.ref]));
+        updatedProds.push({ref:p.ref, stock:newStock, label:p.label, cat:p.cat, nature:p.nature||"", seuil:p.seuil});
+        return {...p,stock:newStock};
+      }));
+      // ✅ Le stock est recalculé côté serveur par syncAllStocks() après addDistribution
       const newMvts = Object.entries(sel).map(([ref,qte])=>({
         id,date:hora.slice(0,10),type:"Sortie",produit:produits.find(p=>p.ref===ref)?.label||ref,
         qte:+qte,benevole:`${user.prenom} ${user.nom}`,commentaire:commentaires,dlc:""
@@ -1129,7 +1342,8 @@ const DistributionPage = ({produits,setProduits,mouvements,setMouvements,sorties
       {/* Step 2 — Produits */}
       {step===2&&(
         <div>
-          <div style={{background:"var(--green-light)",border:"1.5px solid #b8dfc8",borderRadius:12,padding:"12px 16px",marginBottom:18,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          {/* Récapitulatif bénéficiaire */}
+          <div style={{background:"var(--green-light)",border:"1.5px solid #b8dfc8",borderRadius:12,padding:"12px 16px",marginBottom:14,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             <div>
               <div style={{fontSize:11,fontWeight:700,color:"var(--green2)",textTransform:"uppercase",letterSpacing:.5}}>Bénéficiaire</div>
               <div style={{fontSize:16,fontWeight:700,color:"var(--green)"}}>{ben?.prenom} {ben?.nom}</div>
@@ -1138,8 +1352,18 @@ const DistributionPage = ({produits,setProduits,mouvements,setMouvements,sorties
             </div>
             <button onClick={()=>{setStep(1);setSel({});}} style={{border:"none",background:"rgba(28,74,53,.1)",borderRadius:8,padding:"6px 12px",cursor:"pointer",fontSize:12,color:"var(--green)",fontWeight:600}}>Changer</button>
           </div>
+          {/* Recherche + filtre catégorie */}
+          <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
+            <input placeholder="🔍 Rechercher un produit…" value={searchProd} onChange={e=>setSearchProd(e.target.value)}
+              style={{flex:1,minWidth:150,padding:"7px 12px",borderRadius:9,border:"1.5px solid var(--border)",background:"var(--card)",fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"var(--text)"}}/>
+            <select value={filtreCatDist} onChange={e=>setFiltreCatDist(e.target.value)}
+              style={{padding:"7px 12px",borderRadius:9,border:"1.5px solid var(--border)",background:"var(--card)",fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"var(--text)"}}>
+              <option value="">Toutes catégories</option>
+              {categories?.map((c,i)=><option key={c.ref||i} value={c.ref||c.label}>{c.label}</option>)}
+            </select>
+          </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(210px,1fr))",gap:9}}>
-            {produits.filter(p=>p.actif).map((p,i)=>{
+            {prodsFiltered.map((p,i)=>{
               const checked = !!sel[p.ref];
               const bas     = p.stock<=0;
               return (
@@ -1518,7 +1742,7 @@ const BenevolesPage = ({benevoles,setBenevoles,user}) => {
             <Input label="Email" type="email" value={editForm.email} onChange={e=>setEditForm(f=>({...f,email:e.target.value}))}/>
             <Input label="Téléphone" value={editForm.tel} onChange={e=>setEditForm(f=>({...f,tel:e.target.value}))}/>
           </div>
-          <Input label="Pseudonyme" value={editForm.pseudo} onChange={e=>setEditForm(f=>({...f,pseudo:e.target.value}))}/>
+          <Input label="Pseudonyme (identifiant connexion)" value={editForm.pseudo} onChange={e=>setEditForm(f=>({...f,pseudo:e.target.value}))}/>
           <div className="rg2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
             <Select label="Pôle" value={editForm.pole} onChange={e=>setEditForm(f=>({...f,pole:e.target.value}))}>
               {poles.map(p=><option key={p}>{p}</option>)}
@@ -1527,9 +1751,63 @@ const BenevolesPage = ({benevoles,setBenevoles,user}) => {
               <option>Bénévole</option><option>Membre</option>
             </Select>
           </div>
+
+          {/* ── Section changement de mot de passe ── */}
+          <div style={{borderTop:"1.5px dashed var(--border)",paddingTop:12,marginTop:4}}>
+            <div style={{fontSize:11,fontWeight:700,color:"var(--green2)",textTransform:"uppercase",letterSpacing:.4,marginBottom:8}}>🔑 Changer le mot de passe</div>
+            <div className="rg2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <Input label="Nouveau mot de passe" type="password"
+                value={editForm.newMdp||""}
+                onChange={e=>setEditForm(f=>({...f,newMdp:e.target.value}))}
+                placeholder="Laisser vide = inchangé"/>
+              <Input label="Confirmer le mot de passe" type="password"
+                value={editForm.confirmMdp||""}
+                onChange={e=>setEditForm(f=>({...f,confirmMdp:e.target.value}))}
+                placeholder="Confirmer"/>
+            </div>
+            {editForm.newMdp&&editForm.confirmMdp&&editForm.newMdp!==editForm.confirmMdp&&(
+              <p style={{fontSize:11,color:"var(--red)",marginTop:-6,marginBottom:8}}>⚠️ Les mots de passe ne correspondent pas</p>
+            )}
+            {editForm.newMdp&&editForm.newMdp===editForm.confirmMdp&&(
+              <p style={{fontSize:11,color:"var(--green2)",marginTop:-6,marginBottom:8}}>✅ Mot de passe valide</p>
+            )}
+            <p style={{fontSize:11,color:"var(--text2)",marginTop:0}}>
+              ⚠️ Après modification, mettez aussi à jour <b>BENEVOLES_LOCAL</b> dans App.jsx pour que la connexion fonctionne.
+            </p>
+          </div>
+
           <div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:6}}>
             <Btn variant="secondary" onClick={()=>{setEditModal(false);setEditForm(null);}}>Annuler</Btn>
-            <Btn onClick={async()=>{setEditSaving(true);try{await updateBenevole({"Matricule":editForm.matricule,"Nom":editForm.nom,"Prénom":editForm.prenom,"Email":editForm.email,"Téléphone":editForm.tel,"Pseudonyme":editForm.pseudo,"Pôle":editForm.pole,"Statut":editForm.statut});setBenevoles(prev=>prev.map(b=>b.matricule===editForm.matricule?{...b,...editForm}:b));showT("Bénévole modifié !");setEditModal(false);setEditForm(null);}catch(e){showT("Erreur : "+e.message,false);}setEditSaving(false);}} disabled={!editForm.nom||editSaving}>{editSaving?<Spinner/>:"💾 Sauvegarder"}</Btn>
+            <Btn
+              disabled={!editForm.nom||(editForm.newMdp&&editForm.newMdp!==editForm.confirmMdp)||editSaving}
+              onClick={async()=>{
+                setEditSaving(true);
+                try {
+                  const payload = {
+                    "Matricule":  editForm.matricule,
+                    "Nom":        editForm.nom,
+                    "Prénom":     editForm.prenom,
+                    "Email":      editForm.email,
+                    "Téléphone":  editForm.tel,
+                    "Pseudonyme": editForm.pseudo,
+                    "Pôle":       editForm.pole,
+                    "Statut":     editForm.statut,
+                  };
+                  // N'envoie le mot de passe que s'il est renseigné et confirmé
+                  if (editForm.newMdp && editForm.newMdp === editForm.confirmMdp) {
+                    payload["MotDePasse"] = editForm.newMdp;
+                  }
+                  await updateBenevole(payload);
+                  setBenevoles(prev=>prev.map(b=>b.matricule===editForm.matricule
+                    ? {...b,...editForm, mdp: editForm.newMdp&&editForm.newMdp===editForm.confirmMdp ? editForm.newMdp : b.mdp}
+                    : b
+                  ));
+                  showT("Bénévole modifié !" + (editForm.newMdp===editForm.confirmMdp&&editForm.newMdp?" (mot de passe changé)":""));
+                  setEditModal(false); setEditForm(null);
+                } catch(e){ showT("Erreur : "+e.message,false); }
+                setEditSaving(false);
+              }}
+            >{editSaving?<Spinner/>:"💾 Sauvegarder"}</Btn>
           </div>
         </>)}
       </Modal>

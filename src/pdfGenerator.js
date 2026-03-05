@@ -47,7 +47,7 @@ function entete(doc, titre, sous="", width=210) {
   doc.text("Secours Évangélique de France", 22, 13);
   doc.setFont("helvetica","normal");
   doc.setFontSize(9);
-  doc.text("Association Les Mureaux  •  Aide alimentaire et sociale", 22, 20);
+  doc.text("Association Loi 1901  •  RNA n° W943003928 •  Aide alimentaire et sociale", 22, 20);
 
   // Titre document (bandeau amber)
   doc.setFillColor(...AMBER);
@@ -651,4 +651,139 @@ export function datamartMensuel(data) {
   }
 
   doc.save(`Datamart_${nomMois}_${annee}.pdf`);
+}
+
+// ══════════════════════════════════════════════════════
+//  6. LISTE DES PRODUITS EN STOCK (PDF)
+// ══════════════════════════════════════════════════════
+/**
+ * @param {Array}  produits   Liste complète des produits (mappés)
+ * @param {Array}  categories Liste des catégories (mappées)
+ * @param {string} mode       "all" | "stock" | "alertes"
+ */
+export function listeStock(produits, categories, mode = "stock") {
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const W = 210, H = 297;
+
+  // ── Filtrage et tri ──
+  const catLabel = ref =>
+    categories.find(c => c.ref === ref || c.label === ref)?.label || ref || "—";
+
+  let filtered = produits.filter(p => p.actif);
+  if (mode === "stock")   filtered = filtered.filter(p => p.stock > 0);
+  if (mode === "alertes") filtered = filtered.filter(p => p.stock <= p.seuil);
+  filtered = [...filtered].sort((a, b) => a.label.localeCompare(b.label, "fr"));
+
+  const titres = {
+    all:     "Liste Complète des Produits",
+    stock:   "Produits en Stock",
+    alertes: "Produits en Alerte de Stock",
+  };
+  const sous = `Édité le ${todayStr()} · ${filtered.length} référence(s) · ${filtered.reduce((s, p) => s + p.stock, 0)} unités`;
+
+  let y = entete(doc, titres[mode] || "Produits", sous);
+
+  // ── Bandeau couleur selon mode ──
+  const bandeauColor = mode === "alertes" ? AMBER : GREEN2;
+  const labelMode = mode === "alertes"
+    ? "⚠  ARTICLES SOUS SEUIL D'ALERTE"
+    : mode === "stock"
+    ? "✓  ARTICLES DISPONIBLES EN STOCK"
+    : "  INVENTAIRE COMPLET";
+
+  doc.setFillColor(...bandeauColor);
+  doc.rect(10, y, W - 20, 8, "F");
+  doc.setTextColor(...WHITE);
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "bold");
+  doc.text(labelMode, 14, y + 5.5);
+  doc.setTextColor(...BLACK);
+  y += 12;
+
+  // ── Tableau principal ──
+  if (filtered.length === 0) {
+    doc.setFontSize(11);
+    doc.setTextColor(...GRAY);
+    doc.text("Aucun produit à afficher pour ce filtre.", W / 2, y + 20, { align: "center" });
+    doc.setTextColor(...BLACK);
+  } else {
+    // Grouper par catégorie
+    const groupes = {};
+    filtered.forEach(p => {
+      const cat = catLabel(p.cat);
+      if (!groupes[cat]) groupes[cat] = [];
+      groupes[cat].push(p);
+    });
+
+    const body = [];
+    Object.entries(groupes).forEach(([cat, prods]) => {
+      // Ligne de catégorie
+      body.push([{ content: cat.toUpperCase(), colSpan: 5, styles: { fillColor: [235, 245, 240], fontStyle: "bold", fontSize: 8, textColor: GREEN } }]);
+      prods.forEach((p, i) => {
+        const bas = p.stock <= p.seuil;
+        body.push([
+          p.ref || "—",
+          p.label,
+          { content: p.stock, styles: { halign: "center", fontStyle: "bold", textColor: bas ? [192, 57, 43] : GREEN2 } },
+          { content: p.seuil, styles: { halign: "center" } },
+          { content: bas ? "⚠ Bas" : "✓ OK", styles: { halign: "center", textColor: bas ? [192, 57, 43] : GREEN2, fontStyle: "bold" } },
+        ]);
+      });
+    });
+
+    const totalQte = filtered.reduce((s, p) => s + (p.stock || 0), 0);
+    const totalAlert = filtered.filter(p => p.stock <= p.seuil).length;
+
+    autoTable(doc, {
+      startY: y,
+      margin: { left: 10, right: 10 },
+      head: [["Référence", "Libellé", "Stock", "Seuil", "Statut"]],
+      body,
+      foot: [["", `${filtered.length} référence(s)`, { content: totalQte, styles: { halign: "center", fontStyle: "bold" } }, "", `${totalAlert} alerte(s)`]],
+      headStyles: { fillColor: GREEN, textColor: WHITE, fontSize: 8, fontStyle: "bold" },
+      footStyles: { fillColor: LIGHT, textColor: BLACK, fontStyle: "bold", fontSize: 8 },
+      bodyStyles: { fontSize: 8 },
+      columnStyles: {
+        0: { cellWidth: 36, fontStyle: "italic", textColor: GRAY },
+        2: { cellWidth: 18 },
+        3: { cellWidth: 18 },
+        4: { cellWidth: 22 },
+      },
+      alternateRowStyles: { fillColor: [252, 251, 249] },
+      didParseCell: (data) => {
+        // Ne pas appliquer alternateRow sur les lignes de catégorie
+        if (data.row.raw?.[0]?.colSpan === 5) {
+          data.cell.styles.fillColor = [235, 245, 240];
+        }
+      },
+    });
+
+    y = doc.lastAutoTable.finalY + 8;
+  }
+
+  // ── Résumé bas de page ──
+  if (y < H - 30) {
+    doc.setFillColor(...GREEN);
+    doc.rect(10, y, W - 20, 10, "F");
+    doc.setTextColor(...WHITE);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    const totalUnites = filtered.reduce((s, p) => s + p.stock, 0);
+    doc.text(
+      `${filtered.length} produit(s)  •  ${totalUnites} unité(s) en stock  •  ${filtered.filter(p => p.stock <= p.seuil).length} alerte(s)`,
+      W / 2, y + 6.5, { align: "center" }
+    );
+    doc.setTextColor(...BLACK);
+  }
+
+  // ── Pied sur toutes les pages ──
+  const nbPages = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= nbPages; i++) {
+    doc.setPage(i);
+    pied(doc, i, nbPages, W, H);
+  }
+
+  const suffixes = { all: "Complet", stock: "En_Stock", alertes: "Alertes" };
+  const dateStr  = new Date().toISOString().slice(0, 10);
+  doc.save(`SEF_Produits_${suffixes[mode] || "Stock"}_${dateStr}.pdf`);
 }
