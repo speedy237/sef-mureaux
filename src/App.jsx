@@ -65,10 +65,10 @@ const Css = () => (
 ══════════════════════════════════════ */
 const BENEVOLES_LOCAL = [
   {matricule:"BEN-0001",nom:"Yiyueme",prenom:"Jordan",  email:"joryiyueme@gmail.com",  pseudo:"jordan",  mdp:"admin123",  pole:"Coordination",statut:"Membre",  actif:true},
-  {matricule:"BEN-0002",nom:"Oulia",  prenom:"Fidele",  email:"fidele@sef.org",          pseudo:"fidele",  mdp:"fidele123", pole:"Distribution", statut:"Bénévole",actif:true},
-  {matricule:"BEN-0003",nom:"Oulia",  prenom:"Aurore",  email:"aurore@sef.org",          pseudo:"aurore",  mdp:"aurore123", pole:"Collecte",     statut:"Bénévole",actif:true},
+  {matricule:"BEN-0002",nom:"Oulia",  prenom:"Fidele",  email:"fidele@sef.org",          pseudo:"fidele",  mdp:"fidele2026", pole:"Distribution", statut:"Membre",actif:true},
+  {matricule:"BEN-0003",nom:"Oulia",  prenom:"Aurore",  email:"aurore@sef.org",          pseudo:"aurore",  mdp:"aurore@1979", pole:"Collecte",     statut:"Membre",actif:true},
   {matricule:"BEN-0004",nom:"Minsi",  prenom:"Estelle", email:"estelle@sef.org",         pseudo:"estelle", mdp:"estelle123",pole:"Coordination",statut:"Membre",  actif:true},
-  {matricule:"BEN-0005",nom:"Dupont", prenom:"Marie",   email:"marie@sef.org",           pseudo:"marie",   mdp:"marie123",  pole:"Distribution", statut:"Bénévole",actif:true},
+  {matricule:"BEN-0005",nom:"Santos", prenom:"Germaine",   email:"germaine@sef.org",     pseudo:"germaine",   mdp:"Germaine123",  pole:"Distribution", statut:"Membre",actif:true},
 ];
 
 const today    = new Date();
