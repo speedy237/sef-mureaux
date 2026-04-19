@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 
 // ← Remplacez par le nom exact de votre dépôt GitHub
 //   Ex : github.com/jordan/sef-mureaux  →  'sef-mureaux'
@@ -20,7 +21,90 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
-    plugins: [react()],
+    plugins: [
+      react(),
+      VitePWA({
+        registerType: 'autoUpdate',
+        includeAssets: ['vite.svg', 'icon-*.png'],
+        manifest: {
+          name: 'SEF Mureaux - Gestion Banque Alimentaire',
+          short_name: 'SEF Mureaux',
+          description: 'Application de gestion pour la banque alimentaire SEF Mureaux',
+          theme_color: '#1c4a35',
+          background_color: '#f5f0e8',
+          icons: [
+            {
+              src: 'icon-192x192.png',
+              sizes: '192x192',
+              type: 'image/png',
+              purpose: 'any maskable'
+            },
+            {
+              src: 'icon-512x512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'any maskable'
+            }
+          ]
+        },
+        workbox: {
+          // Stratégie de cache pour les fichiers statiques
+          runtimeCaching: [
+            {
+              urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'google-fonts-cache',
+                expiration: {
+                  maxEntries: 10,
+                  maxAgeSeconds: 60 * 60 * 24 * 365 // 1 an
+                },
+                cacheableResponse: {
+                  statuses: [0, 200]
+                }
+              }
+            },
+            {
+              urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'gstatic-fonts-cache',
+                expiration: {
+                  maxEntries: 10,
+                  maxAgeSeconds: 60 * 60 * 24 * 365 // 1 an
+                },
+                cacheableResponse: {
+                  statuses: [0, 200]
+                }
+              }
+            },
+            {
+              // Cache les appels API avec stratégie Network First
+              urlPattern: /^https:\/\/script\.google\.com\/.*/i,
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'api-cache',
+                expiration: {
+                  maxEntries: 50,
+                  maxAgeSeconds: 60 * 60 * 24 // 24 heures
+                },
+                networkTimeoutSeconds: 10,
+                cacheableResponse: {
+                  statuses: [0, 200]
+                }
+              }
+            }
+          ],
+          // Mode pour fonctionner hors ligne
+          navigateFallback: undefined,
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}']
+        },
+        devOptions: {
+          enabled: true, // Active le service worker en dev
+          type: 'module'
+        }
+      })
+    ],
 
     // En production (GitHub Pages) → /sef-stock/
     // En local (dev)               → /

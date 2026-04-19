@@ -1,0 +1,70 @@
+<svg width="1200" height="400" viewBox="0 0 1200 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fond dégradé vert -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1c4a35;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2d6b4f;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Ombre portée -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+      <feOffset dx="0" dy="2" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.2"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Fond -->
+  <rect width="1200" height="400" fill="url(#bg)"/>
+  
+  <!-- Logo (partie gauche) -->
+  <g transform="translate(200, 200)">
+    <!-- Cercle de fond -->
+    <circle cx="0" cy="0" r="100" fill="#ffffff" opacity="0.1"/>
+    
+    <!-- Symbole mains + cœur -->
+    <g transform="scale(0.8)">
+      <!-- Mains -->
+      <path d="M -80,-20 L -80,0 Q -80,15 -70,15 L -30,15 Q -20,15 -20,5 L -20,-15 Q -20,-25 -30,-25 L -70,-25 Q -80,-25 -80,-20 Z" 
+            fill="#f5f0e8" opacity="0.95"/>
+      <path d="M 80,-20 L 80,0 Q 80,15 70,15 L 30,15 Q 20,15 20,5 L 20,-15 Q 20,-25 30,-25 L 70,-25 Q 80,-25 80,-20 Z" 
+            fill="#f5f0e8" opacity="0.95"/>
+      
+      <!-- Cœur -->
+      <path d="M 0,0 Q -15,-15 -25,-15 Q -35,-15 -35,-5 Q -35,10 0,30 Q 35,10 35,-5 Q 35,-15 25,-15 Q 15,-15 0,0 Z" 
+            fill="#d4870a" transform="scale(0.9)"/>
+    </g>
+  </g>
+  
+  <!-- Texte principal "SERVIR" -->
+  <g filter="url(#shadow)">
+    <text x="400" y="220" 
+          font-family="'Arial Black', 'Helvetica', sans-serif" 
+          font-size="120" 
+          font-weight="900" 
+          fill="#ffffff" 
+          letter-spacing="-3">SERVIR</text>
+  </g>
+  
+  <!-- Symbole "+" -->
+  <g transform="translate(880, 200)">
+    <circle cx="0" cy="0" r="50" fill="#d4870a"/>
+    <rect x="-28" y="-7" width="56" height="14" fill="#ffffff" rx="4"/>
+    <rect x="-7" y="-28" width="14" height="56" fill="#ffffff" rx="4"/>
+  </g>
+  
+  <!-- Sous-titre -->
+  <text x="600" y="290" 
+        font-family="'Georgia', serif" 
+        font-size="28" 
+        font-style="italic"
+        fill="#f5f0e8" 
+        text-anchor="middle"
+        opacity="0.95">SEF Mureaux - Solidarité Alimentaire</text>
+</svg>

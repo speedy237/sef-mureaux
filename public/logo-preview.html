@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logo Servir+ - Preview</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f0e8 0%, #e8e0d5 100%);
+      padding: 40px 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      text-align: center;
+      color: #1c4a35;
+      font-size: 3em;
+      margin-bottom: 10px;
+      font-weight: 900;
+    }
+    
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 50px;
+      font-style: italic;
+    }
+    
+    .section {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 40px rgba(28, 74, 53, 0.1);
+    }
+    
+    .section h2 {
+      color: #1c4a35;
+      margin-bottom: 30px;
+      border-bottom: 3px solid #d4870a;
+      padding-bottom: 10px;
+    }
+    
+    .logo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 30px;
+      margin-top: 30px;
+    }
+    
+    .logo-item {
+      text-align: center;
+    }
+    
+    .logo-item img {
+      width: 100%;
+      max-width: 200px;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+    }
+    
+    .logo-item:hover img {
+      transform: scale(1.05);
+    }
+    
+    .logo-item p {
+      margin-top: 15px;
+      color: #666;
+      font-size: 14px;
+    }
+    
+    .banner-preview {
+      width: 100%;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+      margin-top: 20px;
+    }
+    
+    .color-palette {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+    }
+    
+    .color-box {
+      text-align: center;
+      padding: 20px;
+      border-radius: 10px;
+      color: white;
+      font-weight: 600;
+    }
+    
+    .color-box .hex {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      margin-top: 10px;
+      opacity: 0.9;
+    }
+    
+    .backgrounds {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+      margin-top: 30px;
+    }
+    
+    .bg-preview {
+      padding: 40px;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .bg-preview img {
+      max-width: 150px;
+      border-radius: 10px;
+    }
+    
+    .bg-white { background: white; }
+    .bg-light { background: #f5f0e8; }
+    .bg-green { background: #1c4a35; }
+    .bg-dark { background: #1a1a1a; }
+    
+    .footer {
+      text-align: center;
+      margin-top: 50px;
+      padding: 30px;
+      background: white;
+      border-radius: 20px;
+      color: #666;
+    }
+    
+    .footer strong {
+      color: #1c4a35;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎨 Logo SERVIR+</h1>
+    <p class="subtitle">SEF Mureaux - Solidarité Alimentaire</p>
+    
+    <!-- Variantes du logo -->
+    <div class="section">
+      <h2>Variantes du logo</h2>
+      <div class="logo-grid">
+        <div class="logo-item">
+          <img src="icon.svg" alt="Logo principal">
+          <p><strong>Logo principal</strong><br>512×512px | SVG</p>
+        </div>
+        <div class="logo-item">
+          <img src="icon-simple.svg" alt="Logo simplifié">
+          <p><strong>Logo simplifié</strong><br>512×512px | SVG</p>
+        </div>
+        <div class="logo-item">
+          <img src="icon-192x192.png" alt="Icône 192px">
+          <p><strong>Icône PWA</strong><br>192×192px | PNG</p>
+        </div>
+        <div class="logo-item">
+          <img src="icon-512x512.png" alt="Icône 512px">
+          <p><strong>Icône HD</strong><br>512×512px | PNG</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Banner -->
+    <div class="section">
+      <h2>Banner horizontal</h2>
+      <img src="banner.svg" alt="Banner" class="banner-preview">
+      <p style="text-align: center; margin-top: 15px; color: #666;">
+        1200×400px | Pour en-têtes, réseaux sociaux, présentations
+      </p>
+    </div>
+    
+    <!-- Palette de couleurs -->
+    <div class="section">
+      <h2>Palette de couleurs</h2>
+      <div class="color-palette">
+        <div class="color-box" style="background: #1c4a35;">
+          <div>Vert foncé</div>
+          <div class="hex">#1c4a35</div>
+        </div>
+        <div class="color-box" style="background: #2d6b4f;">
+          <div>Vert moyen</div>
+          <div class="hex">#2d6b4f</div>
+        </div>
+        <div class="color-box" style="background: #d4870a;">
+          <div>Ambre</div>
+          <div class="hex">#d4870a</div>
+        </div>
+        <div class="color-box" style="background: #f5f0e8; color: #1c4a35;">
+          <div>Blanc cassé</div>
+          <div class="hex">#f5f0e8</div>
+        </div>
+        <div class="color-box" style="background: #ffffff; color: #1c4a35; border: 2px solid #e0e0e0;">
+          <div>Blanc pur</div>
+          <div class="hex">#ffffff</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Fonds -->
+    <div class="section">
+      <h2>Logo sur différents fonds</h2>
+      <div class="backgrounds">
+        <div class="bg-preview bg-white">
+          <img src="icon.svg" alt="Logo sur fond blanc">
+        </div>
+        <div class="bg-preview bg-light">
+          <img src="icon.svg" alt="Logo sur fond clair">
+        </div>
+        <div class="bg-preview bg-green">
+          <img src="icon-simple.svg" alt="Logo sur fond vert">
+        </div>
+        <div class="bg-preview bg-dark">
+          <img src="icon-simple.svg" alt="Logo sur fond sombre">
+        </div>
+      </div>
+    </div>
+    
+    <!-- Tailles d'icônes -->
+    <div class="section">
+      <h2>Toutes les tailles d'icônes</h2>
+      <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-end; margin-top: 30px;">
+        <div class="logo-item">
+          <img src="icon-72x72.png" alt="72px" style="max-width: 72px;">
+          <p>72×72</p>
+        </div>
+        <div class="logo-item">
+          <img src="icon-96x96.png" alt="96px" style="max-width: 96px;">
+          <p>96×96</p>
+        </div>
+        <div class="logo-item">
+          <img src="icon-128x128.png" alt="128px" style="max-width: 128px;">
+          <p>128×128</p>
+        </div>
+        <div class="logo-item">
+          <img src="icon-144x144.png" alt="144px" style="max-width: 144px;">
+          <p>144×144</p>
+        </div>
+        <div class="logo-item">
+          <img src="icon-192x192.png" alt="192px" style="max-width: 192px;">
+          <p>192×192</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p><strong>Logo "Servir+"</strong> créé pour <strong>SEF Mureaux</strong></p>
+      <p style="margin-top: 10px; font-size: 14px;">
+        Solidarité Alimentaire • Banque Alimentaire
+      </p>
+      <p style="margin-top: 20px; font-size: 12px; opacity: 0.7;">
+        © 2026 SEF Mureaux - Tous droits réservés
+      </p>
+    </div>
+  </div>
+</body>
+</html>
