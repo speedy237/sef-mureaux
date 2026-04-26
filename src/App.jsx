@@ -70,6 +70,7 @@ const BENEVOLES_LOCAL = [
   {matricule:"BEN-0003",nom:"Oulia",  prenom:"Aurore",  email:"aurore@sef.org",          pseudo:"aurore",  mdp:"aurore@1979", pole:"Collecte",     statut:"Membre",actif:true},
   {matricule:"BEN-0004",nom:"Minsi",  prenom:"Estelle", email:"estelle@sef.org",         pseudo:"estelle", mdp:"estelle123",pole:"Coordination",statut:"Membre",  actif:true},
   {matricule:"BEN-0005",nom:"Santos", prenom:"Germaine",   email:"germaine@sef.org",     pseudo:"germaine",   mdp:"Germaine123",  pole:"Distribution", statut:"Membre",actif:true},
+  {matricule:"BEN-0006",nom:"Santos", prenom:"Amour",   email:"amour@sef.org",     pseudo:"amour",   mdp:"Amour2026",  pole:"Distribution", statut:"Membre",actif:true},
 ];
 
 const today    = new Date();
